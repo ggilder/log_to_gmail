@@ -16,21 +16,6 @@ require 'open3'
 
 include ActionView::Helpers::DateHelper
 
-# Process arguments
-command = ARGV
-if command.count == 0
-  $stderr.puts "Missing command to run!"
-  exit 1
-end
-
-# Config
-# TODO: make this more configurable
-task_label = command.join(' ')
-label = "LogToGmail"
-subject_text = "Task Completed"
-subject = "[#{label}] #{subject_text}"
-config_path = File.join(Dir.home, '.log_to_gmail').freeze
-
 class GmailWrapper
   OOB_URI = 'urn:ietf:wg:oauth:2.0:oob'.freeze
   APPLICATION_NAME = 'Log To Gmail'.freeze
@@ -95,6 +80,16 @@ class GmailWrapper
   end
 end
 
+# Process arguments
+command = ARGV
+if command.count == 0
+  $stderr.puts "Missing command to run!"
+  exit 1
+end
+
+task_label = command.join(' ')
+config_path = File.join(Dir.home, '.log_to_gmail').freeze
+
 gmail = GmailWrapper.new(config_path)
 # Make sure we can authorize before running script
 gmail.service
@@ -118,7 +113,13 @@ Standard output/error:
 Have a nice day!
 EOD
 
+label = `hostname`.chomp
+subject_text = status.success? ? "SUCCESS" : "FAILURE"
+subject_text += " - #{task_label}"
+subject = "[#{label}] #{subject_text}"
+
 gmail.send_self_message(subject, body)
+
 puts "Completed task in #{elapsed}"
 puts "Exit status: #{status.exitstatus}"
 puts "Lines of output: #{out.lines.count}"
