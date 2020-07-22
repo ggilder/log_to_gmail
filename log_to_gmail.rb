@@ -101,7 +101,7 @@ gmail.service
 
 puts "Running task `#{task_label}`"
 start_time = Time.now
-out, status = Open3.capture2e(*command)
+out, status = Bundler.with_clean_env { Open3.capture2e(*command) }
 stop_time = Time.now
 elapsed = distance_of_time_in_words(start_time, stop_time)
 
